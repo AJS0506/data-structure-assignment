@@ -1,0 +1,384 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define SIZE 9
+
+//����Ʈ�� �Լ� 
+typedef struct _BinaryTree
+{
+	int data;
+	struct _BinaryTree* left;
+    struct _BinaryTree* right;
+} BtreeNode;
+
+
+int GetData(BtreeNode* AVLtree)
+{
+	int data = AVLtree->data;
+	return data;
+}
+
+BtreeNode* GetLeftTree(BtreeNode* AVLtree)
+{
+	return AVLtree->left;
+}
+
+BtreeNode* GetRightTree(BtreeNode* AVLtree)
+{
+	return AVLtree->right;
+}
+
+
+
+BtreeNode * MakeBtreeNode()
+{
+	BtreeNode* newTree = (BtreeNode*)malloc(sizeof(BtreeNode));
+	newTree->left = NULL;
+	newTree->right = NULL;
+	
+	return newTree;
+}
+
+void PreorderTraverse(BtreeNode * bt)
+{
+	if(bt == NULL)
+	   return;
+	
+	printf("%d  ",bt->data);
+	PreorderTraverse(bt->left);
+	PreorderTraverse(bt->right);
+}
+
+void InorderTraverse(BtreeNode * bt)
+{
+	if(bt == NULL)
+	return;
+	
+	InorderTraverse(bt->left);
+	printf("%d  ",bt->data);
+	InorderTraverse(bt->right);
+}
+
+void PostorderTraverse(BtreeNode * bt)
+{
+	if(bt == NULL)
+	return;
+	
+	PostorderTraverse(bt->left);
+	PostorderTraverse(bt->right);
+	printf("%d  ",bt->data);
+}
+
+
+//����Ž��Ʈ�� �����Լ�  
+void BSTInit(BtreeNode ** AVLroot)
+{
+	*AVLroot = NULL;
+}
+
+
+
+BtreeNode* BSTSearch(BtreeNode* AVLroot, int target) //target�� ������ ��带 Ž���ϴ� �Լ��Դϴ�.  
+{                                                    //��������� ������, �����ϱ����� �غ��ҽ��ϴ�. 
+	BtreeNode* pNode = NULL;
+	BtreeNode* cNode = AVLroot;
+	
+	if(AVLroot == NULL)
+	return NULL;
+	
+	while(cNode != NULL)
+	{
+		pNode = cNode;
+		
+		if(cNode->data == target)
+		return cNode;
+		
+		else if(target < cNode->data)
+			cNode = cNode->left;
+		else
+			cNode = cNode->right;
+	}
+	   return NULL;
+} 
+
+
+void BSTInorder(BtreeNode * AVLroot)   //�ش� Ʈ���� ������ȸ�� �����ϴ� �Լ��Դϴ�. 
+{
+	InorderTraverse(AVLroot);
+}
+
+void BSTPreorder(BtreeNode * AVLroot)  //�ش� Ʈ���� ������ȸ�� �����ϴ� �Լ��Դϴ�.
+{
+	PreorderTraverse(AVLroot);
+}
+
+void BSTPostorder(BtreeNode * AVLroot) //�ش� Ʈ���� ������ȸ�� �����ϴ� �Լ��Դϴ�. 
+{
+	PostorderTraverse(AVLroot);
+}
+
+//AVL Tree Rebalancing �����Լ� 
+int WhatHeight(BtreeNode * AVLroot)  //�ش� AVLƮ���� ����,������ ����Ʈ���� ���̰� ���� ���� ��ȯ�մϴ�. 
+{
+	int left;
+	int right;
+	
+	if(AVLroot == NULL)
+	return 0;
+	
+	left = WhatHeight(AVLroot->left); //���� ����Ʈ���� ���̸� ��� 
+	right = WhatHeight(AVLroot->right); //������ ����Ʈ���� ���̸� ��� 
+	
+	if(right>left)
+	return right+1;
+	else
+	return left+1;
+}
+
+int DiffHeight(BtreeNode* AVLroot) //�ش� AVLƮ���� ����/������ ���̸� ���Ͽ� �� ����(��������Ȯ�ο�)�� ��ȯ�մϴ�.  
+{
+	int left;
+	int right;
+	
+	if(AVLroot == NULL)
+	return 0;
+	
+	left = WhatHeight(AVLroot->left);
+	right = WhatHeight(AVLroot->right);
+	
+	return left-right;
+} 
+
+BtreeNode* LL(BtreeNode* AVLroot) //LL�����̼� �Լ�, ��ȯ���� ��ɼ��� �� ��Ʈ��� 
+{
+	BtreeNode* pNode;
+	BtreeNode* cNode;
+	
+	pNode = AVLroot;
+	cNode = AVLroot->left;
+	
+	pNode->left = cNode->right;        //LL�����̼��̹Ƿ� cNode�� ��Ʈ���� �ø��ϴ�. 
+	cNode->right = pNode;              //cNode�� �θ��尡 �Ǿ��� , �����ʿ� pNode�� �����մϴ�. 
+	
+	return cNode;
+}
+
+
+BtreeNode* RR(BtreeNode* AVLroot) //RR�����̼� �Լ� , ��ȯ���� ��ɼ��� �� ��Ʈ��� 
+{
+	BtreeNode* pNode;
+	BtreeNode* cNode;
+	
+	pNode = AVLroot;
+	cNode = AVLroot->right;
+	
+	pNode->right = cNode->left;   //RR�����̼��̹Ƿ� cNode�� ��Ʈ���� �ø��ϴ�. 
+	cNode->left = pNode;          //cNode�� �θ��尡 �Ǿ���, ���ʿ� pNode�� �����մϴ�. 
+	
+	return cNode;
+}
+
+BtreeNode* LR(BtreeNode* AVLroot) //LR �����̼� �Լ� , ��ȯ���� ��ɼ��� �� ��Ʈ��� 
+{
+	BtreeNode* pNode;
+	BtreeNode* cNode;
+	BtreeNode* result;
+	
+	pNode = AVLroot;
+	cNode = AVLroot->left;
+	
+	pNode->left = RR(cNode);      //LR �����̼��� �ʱ��� pNode(���̱���-2) / cNode(���̱��� -1) �� ��忡��   
+	result = LL(pNode);           //cNode(���̱���-1) �� ��Ʈ���� �ϴ� RR�����̼��� �ϸ� 	                            
+	return result;                //LR��Ȳ�� LL�����̼� ��Ȳ���� �ٲ�ϴ�. ���� LL�����̼��� �����ϸ� LR�����̼��� �����ϴ�. 
+}
+
+
+BtreeNode* RL(BtreeNode* AVLroot) //RL �����̼� �Լ��� , ��ȯ���� ��ɼ��� �� ��Ʈ�� 
+{
+	BtreeNode* pNode;
+	BtreeNode* cNode;
+	BtreeNode* result;
+	
+	pNode = AVLroot;
+	cNode = AVLroot->right;
+	
+	pNode->right = LL(cNode);      //RL�����̼��� �ʱ��� pNode(���̱���+2) / cNode(���̱���-1) �� ��忡��  
+	result = RR(pNode);            //cNode(���̱���+1) �� ��Ʈ���� �ϴ� LL�����̼��� �ϸ� 
+	return result;                 //RL��Ȳ�� RR�����̼��� �ʿ��� ��Ȳ���� �ٲ�ϴ�. �� �� RR�����̼��� �����ϸ� RL�����̼��� �����ϴ�. 
+}
+
+
+BtreeNode* Rotation(BtreeNode** AVLroot)
+{
+	int diff = DiffHeight(*AVLroot);
+	
+	if(diff > 1) //diff�� 1����ũ�� LL �Ǵ� LR ȸ���̴�. (diff�Լ����� ��ȯ���� ���ʼ���Ʈ������ - �����ʼ���Ʈ������ ���� �����Ͽ��� ����.)
+	{
+		if(DiffHeight( (*AVLroot)->left ) > 0) // AVLroot�� �ڽĳ�� (LL OR LR �̴� ���� �ڽĳ��) �� ������ ����̸� LL �����̸� LR�̴�. 
+			*AVLroot = LL(*AVLroot);
+		else
+			*AVLroot = LR(*AVLroot);
+	}
+	
+	else if(diff < -1) //diff�� -1���� ������ RR �Ǵ� RL ȸ���̴�. (diff�Լ����� ��ȯ���� ���ʼ���Ʈ������ - �����ʼ���Ʈ������ ���� �����Ͽ��� ����.)
+	{
+		if(DiffHeight( (*AVLroot)->right) < 0) // AVlroot�� �������ڽĳ���� ������ ����� RR ������ RL 
+			*AVLroot = RR(*AVLroot);
+		else
+			*AVLroot = RL(*AVLroot);
+	}
+	return *AVLroot;
+}
+
+BtreeNode* BSTInsert(BtreeNode** AVLroot , int data) //����� ������ �����ϴ� �Լ�. �����޸��Ҵ��� ���� ����� ������ ����ϰ� �ֽ��ϴ�  
+{
+	if(*AVLroot == NULL)
+	{
+		BtreeNode* newNode = (BtreeNode*)malloc(sizeof(BtreeNode));
+		newNode->left = NULL;
+		newNode->right = NULL;
+		newNode->data = data;
+		
+		*AVLroot = newNode;
+	}
+	else if(data < (*AVLroot)->data)
+	{
+		BSTInsert( &((*AVLroot)->left),data);
+		*AVLroot = Rotation(AVLroot);
+	}
+	else if(data > (*AVLroot)->data )
+	{
+		BSTInsert( &((*AVLroot)->right),data);
+		*AVLroot = Rotation(AVLroot);
+	}
+	else
+	{
+		return NULL;
+	}
+	
+	return *AVLroot;
+}
+
+BtreeNode* BSTRemove(BtreeNode** AVLroot,int target) //AVLƮ���� ���� �Լ� 
+{
+	BtreeNode* VRpRoot = (BtreeNode*)malloc(sizeof(BtreeNode));
+	VRpRoot->left = NULL; VRpRoot->right = NULL; 
+	BtreeNode* pNode = VRpRoot;
+	BtreeNode* cNode = *AVLroot;
+	BtreeNode* dNode;
+	
+	VRpRoot->right = *AVLroot;      //�����Ʈ��带 �Ѱ� ���� �����Ʈ����� �������� AVLƮ���� ��Ʈ��尡 �ǰ� �մϴ�.
+                                    //���� ���������� pNode�� cNode�� �׻�θ� �Ǿ���ϴµ�  
+	                                //���� ������ ��尡 ��Ʈ����� pNode�� cNode�� �θ� ����Ű�� ���մϴ� ����
+									//���� VRpRoot�� ���� ��Ʈ��� �����ÿ� ��Ʈ��尡 cNode�� �װ��� �θ� �����Ʈ��带 pNode�� ����Ű�� �մϴ�. 
+	//������� ��� ã��
+	while(cNode != NULL && cNode->data != target)
+	{
+		pNode = cNode;
+	
+		if(target > cNode->data)
+		cNode = cNode->right;
+		else
+		cNode = cNode->left;	
+	}
+	 
+	if(cNode == NULL)
+	return NULL;
+	
+	dNode = cNode;
+	
+	//ù��°: dNode�� �ܸ�����ΰ�� 
+	if(dNode->left == NULL && dNode->right == NULL)
+	{
+		if(pNode->left == dNode)
+		pNode->left = NULL;
+		else
+		pNode->right = NULL;
+	}
+	
+	//�ι���: dNode�� �ϳ��� �ܸ���带 ������ ��� dNode�� �ڽĳ�� �ʿ� 
+	else if(dNode->left == NULL || dNode->right == NULL)
+	{
+		
+		BtreeNode* childNode;
+		
+		if(dNode->left != NULL)
+		childNode = dNode->left;
+		else
+		childNode = dNode->right;
+		
+		if(pNode->left == dNode)
+		pNode->left = childNode;
+		else
+		pNode->right = childNode;
+	}
+	//������ : dNode�� �ΰ��� �ܸ���带 ������ ��� 
+	// ��ü���� ��ü����� �ڽĳ�带 ã�� ��ü��带 ������忡 ������ ��ü����� �θ���� �ڽĳ�带 �����Ѵ�. 
+	else
+	{
+		BtreeNode* rppNode = dNode;
+		BtreeNode* rpNode = dNode->right;      // ������ ����� ��ü��带 ã�ƾ��ϴµ� ��ü��带 ã�� ������ 
+		int backup;                            // ������ ����� ������ ����Ʈ��(ū��) ���� ���ʳ� Ʈ��(���� ���� ������) ���� �߽��ϴ�. 
+		                                       // ���� rpNode�� dNode->right ���� �����ؼ� ����Ͽ� NULL�� ���������� left�� �������ϴ�  
+		while(rpNode->left != NULL)   
+		{
+			rppNode = rpNode;
+			rpNode = rpNode->left;
+		}
+		
+		backup = dNode->data;
+		dNode->data = rpNode->data; //�ڳ�尡 �ƴ� "��"�� ����
+		 
+		//��ü����� �θ���� �ڽĳ�带 ����. (�ڽĳ�尡 �����Ѵٸ�, �װ��� �����ʳ����) 
+		if(rppNode->left == rpNode)
+		rppNode->left = rpNode->right;
+		else
+		rppNode->right = rpNode->right;
+		
+		dNode = rpNode;
+		dNode->data = backup;	
+	}
+	
+	if(VRpRoot->right != *AVLroot)
+	*AVLroot = VRpRoot->right;
+	
+	*AVLroot = Rotation(AVLroot);
+	free(VRpRoot);
+	return dNode;
+}
+
+//main 
+//���Լ��� : 9 1 0 -1 5 2 6 10 11 
+int main()
+{
+	BtreeNode* bstRoot;
+	BtreeNode* memoryout;
+	BSTInit(&bstRoot); //AVLƮ���� �ʱ�ȭ 
+	
+	int i,save,remove;
+	int arr[SIZE];  
+	
+	printf("Inser node to AVL tree: \n"); 
+	
+	for(i=0; i<SIZE; i++)
+	{
+		scanf("%d",&save);
+		arr[i] = save; 
+		BSTInsert(&bstRoot,arr[i]); 
+    }
+	
+	printf("\n\n");
+	
+	printf("Preorder traversal of the constructed AVL tree is\n"); //AVLƮ���� Preorder�� Traverse 
+	PreorderTraverse(bstRoot); 
+	printf("\n");
+	
+	// 10�� �����͸� ����, �Ź������ҋ��� �����̼� �ʿ俩�θ� Ȯ���ϰ� �ʿ��ϸ� �����մϴ�. 
+	printf("Preorder traversal after deletion of : "); //�Է°�  �������� AVLƮ���� Preorder�� Traverse
+	scanf("%d",&remove);
+	memoryout = BSTRemove(&bstRoot,remove);
+	free(memoryout);
+	BSTPreorder(bstRoot);
+	
+	return 0;
+}
